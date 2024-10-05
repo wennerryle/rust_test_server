@@ -8,5 +8,5 @@ pub fn get_port() -> u16 {
         .next()
         .filter(|args| args[0] == "-p")
         .and_then(|args| args[1].parse::<u16>().ok())
-        .unwrap_or(7878)
+        .unwrap_or(80)
 }

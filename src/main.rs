@@ -1,6 +1,8 @@
 mod arguments_parser;
 mod front_controller;
-use std::io::{BufRead, BufReader, Read};
+mod request_parser;
+use std::fs;
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 
 fn main() {
@@ -9,7 +11,11 @@ fn main() {
         println!("Can't take port {}. Trying to take port {}", port, port + 1)
     });
 
-    println!("\nListening on http://127.0.0.1:{}", port);
+    if port < 1023 {
+        println!("notice: nonadministrators can listen only on ports higher than 1023");
+    }
+
+    println!("\nListening on http://127.0.0.1:{port}\n");
 
     for stream in listener.incoming() {
         let _ = stream.map(handle_connection);
@@ -17,23 +23,27 @@ fn main() {
 }
 
 fn handle_connection(mut stream: TcpStream) {
-    let mut buf_reader = BufReader::new(&mut stream);
-    let http_request = buf_reader
-        .by_ref()
+    let buf_reader = BufReader::new(&mut stream);
+    let mut http_request = buf_reader
         .lines()
-        .next()
-        .map(|it| it.ok())
-        .flatten();
+        .filter_map(Result::ok)
+        .take_while(|line| !line.is_empty())
+        .into_iter();
 
-    match http_request {
+    let fst_line = http_request.next();
+
+    match fst_line {
         Some(value) if value.starts_with("GET /") => {
-            println!("I GOT GET! {value}");
+            let status_line = "HTTP/1.1 200 OK";
+            let contents = fs::read_to_string(r"index.html").unwrap();
+            let length = contents.len();
 
-            buf_reader
-                .by_ref()
-                .lines()
-                .filter_map(|it| it.ok())
-                .for_each(|val| println!("{val}"));
+            println!("Headers:");
+            http_request.for_each(|header| println!("{header}"));
+
+            let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+
+            let _ = stream.write_all(response.as_bytes());
         }
         _ => {}
     }
