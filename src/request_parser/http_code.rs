@@ -20,7 +20,7 @@ impl HTTPCode {
             | 451
             | 499
             | 500..=511
-            | 520..=526 => Some(HTTPCode::new(input)),
+            | 520..=526 => Some(HTTPCode { code: input }),
             _ => None,
         }
     }

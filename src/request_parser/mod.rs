@@ -2,13 +2,10 @@ mod http_code;
 mod http_methods;
 
 use http_methods::HTTPMethods;
-use itertools::Itertools;
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_while_m_n},
+    bytes::complete::{tag, take_till},
+    character::is_space,
     combinator::map_res,
-    error::ErrorKind,
-    sequence::tuple,
     IResult,
 };
 
@@ -22,17 +19,13 @@ pub struct HTTPRequest<'a> {
     pub requested_headers: [Header<'a>],
 }
 
-pub fn p_method(i: &str) -> Result<(&str, HTTPMethods), nom::Err<()>> {
-    let parsers = (
-        tag::<&str, &str, ()>("GET"),
-        tag("HEAD"),
-        tag("POST"),
-        tag("PUT"),
-        tag("DELETE"),
-        tag("CONNECT"),
-        tag("TRACE"),
-        tag("PATCH"),
-    );
+fn till_space(s: &str) -> IResult<&str, &str> {
+    take_till(|c| c == ' ')(s)
+}
 
-    map_res(alt(parsers), HTTPMethods::from)(i)
+pub fn p_method(i: &str) -> IResult<&str, Option<HTTPMethods>> {
+    let (rest, res) = till_space(i)?;
+    let res = HTTPMethods::from(res);
+
+    Ok((rest, res))
 }
