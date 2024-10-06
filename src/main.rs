@@ -2,7 +2,7 @@ mod arguments_parser;
 mod front_controller;
 mod request_parser;
 use std::fs;
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::{BufRead, BufReader, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 
 fn main() {
@@ -16,6 +16,10 @@ fn main() {
     }
 
     println!("\nListening on http://127.0.0.1:{port}\n");
+
+    let parser = request_parser::p_method("GET DSDMK");
+
+    println!("some debug hren {parser:?}");
 
     for stream in listener.incoming() {
         let _ = stream.map(handle_connection);
@@ -34,6 +38,8 @@ fn handle_connection(mut stream: TcpStream) {
 
     match fst_line {
         Some(value) if value.starts_with("GET /") => {
+            println!("First line is:\n{value}");
+
             let status_line = "HTTP/1.1 200 OK";
             let contents = fs::read_to_string(r"index.html").unwrap();
             let length = contents.len();

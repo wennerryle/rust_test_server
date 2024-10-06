@@ -2,7 +2,7 @@ use std::env;
 
 pub fn get_port() -> u16 {
     env::args()
-        .collect::<Vec<String>>()
+        .collect::<Vec<_>>()
         .windows(2)
         .skip(1)
         .next()

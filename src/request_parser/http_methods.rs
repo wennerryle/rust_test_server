@@ -1,3 +1,6 @@
+use nom::error::ErrorKind;
+
+#[derive(Debug, PartialEq)]
 pub enum HTTPMethods {
     GET,
     HEAD,
@@ -10,17 +13,17 @@ pub enum HTTPMethods {
 }
 
 impl HTTPMethods {
-    pub fn from(input: &str) -> Option<Self> {
+    pub fn from(input: &str) -> Result<Self, ErrorKind> {
         match input {
-            "GET" => Some(Self::GET),
-            "HEAD" => Some(Self::HEAD),
-            "POST" => Some(Self::POST),
-            "PUT" => Some(Self::PUT),
-            "DELETE" => Some(Self::DELETE),
-            "CONNECT" => Some(Self::CONNECT),
-            "TRACE" => Some(Self::TRACE),
-            "PATCH" => Some(Self::PATCH),
-            _ => None,
+            "GET" => Ok(Self::GET),
+            "HEAD" => Ok(Self::HEAD),
+            "POST" => Ok(Self::POST),
+            "PUT" => Ok(Self::PUT),
+            "DELETE" => Ok(Self::DELETE),
+            "CONNECT" => Ok(Self::CONNECT),
+            "TRACE" => Ok(Self::TRACE),
+            "PATCH" => Ok(Self::PATCH),
+            _ => Err(ErrorKind::Tag),
         }
     }
 }
